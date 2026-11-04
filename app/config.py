@@ -39,6 +39,13 @@ FUTDB_MAX_PLAYERS = int(_get("FUTDB_MAX_PLAYERS", "300"))     # carte seguite
 FUTDB_INTERVAL_MIN = int(_get("FUTDB_INTERVAL_MIN", "60"))    # ogni quanto aggiornare i prezzi
 FUTDB_DAILY_LIMIT = int(_get("FUTDB_DAILY_LIMIT", "18000"))   # margine sotto le 20.000 del piano
 
+# Fornitore FC-Tracker (pool condiviso, gratuito, uso autorizzato dal gestore). Attivo se FCT_ENABLED=true.
+FCT_ENABLED = _get("FCT_ENABLED", "false").lower() == "true"
+FCT_BASE_URL = _get("FCT_BASE_URL", "https://api.fc-tracker.com")
+FCT_INTERVAL_MIN = int(_get("FCT_INTERVAL_MIN", "30"))      # il pool si aggiorna ogni 30 minuti
+FCT_MAX_AGE_HOURS = int(_get("FCT_MAX_AGE_HOURS", "12"))    # ignora prezzi più vecchi di così
+FCT_MIN_PRICE = int(_get("FCT_MIN_PRICE", "1000"))          # ignora carte sotto questo prezzo
+
 # Regole del motore (valori di partenza, si regolano dopo la simulazione)
 EA_TAX = 0.05                 # trattenuta EA su ogni vendita
 MIN_OBSERVATIONS = int(_get("MIN_OBSERVATIONS", "5"))      # osservazioni minime per calcolare la media

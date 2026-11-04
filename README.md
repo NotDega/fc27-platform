@@ -74,6 +74,15 @@ Per attivarlo aggiungi su Railway la variabile `FUTDB_TOKEN` con la chiave API d
 
 Consumo: 300 carte × 24 aggiornamenti = 7.200 richieste al giorno. Su Telegram `/fonte` mostra lo stato.
 
+## Prezzi automatici: FC-Tracker (gratuito, uso autorizzato dal gestore)
+
+Pool condiviso dagli utenti dell'app FC-Tracker: prezzo medio EA di circa 4.000 carte console.
+Attivalo su Railway con la variabile `FCT_ENABLED` = `true`.
+
+- Ogni 30 minuti il bot scarica il pool e salva solo i prezzi **più recenti di 12 ore** (`FCT_MAX_AGE_HOURS`).
+- Le carte arrivano con il codice EA e senza nome: nel bot compaiono come "EA 1845".
+- Limite: molti prezzi del pool sono vecchi di giorni, quindi è una fonte di riferimento, non di segnali veloci.
+
 ## Uso quotidiano (Fase 1)
 
 Finché non abbiamo un fornitore di dati autorizzato, i prezzi li inserisci tu dal gioco:

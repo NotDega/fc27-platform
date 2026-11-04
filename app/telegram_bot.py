@@ -60,11 +60,18 @@ def fmt(n: int | float) -> str:
     return f"{int(n):,}".replace(",", ".")
 
 
+def card_label(c) -> str:
+    """Nome leggibile: le carte arrivate solo da FC-Tracker non hanno ancora nome e rating."""
+    if not c.rating:
+        return c.name
+    return f"{c.name} {c.rating} ({c.version})"
+
+
 def format_call(call: Call) -> str:
     c = call.card
     mode = "SIMULAZIONE - non usare crediti veri\n\n" if config.SIM_MODE else ""
     return (
-        f"{mode}CALL #{call.id} - {c.name} {c.rating} ({c.version}) - {call.platform}\n"
+        f"{mode}CALL #{call.id} - {card_label(c)} - {call.platform}\n"
         f"Compra fino a: {fmt(call.entry_max)}\n"
         f"Vendi tra: {fmt(call.sell_low)} e {fmt(call.sell_high)}\n"
         f"Netto atteso: +{call.expected_net_pct:.1%} dopo la tassa EA\n"
@@ -140,23 +147,35 @@ def handle(chat_id: str, text: str) -> str | None:
                 f"Immobilizzo medio: {hold}"
             )
         if cmd == "/fonte":
-            if not config.FUTDB_TOKEN:
-                return "Fornitore automatico spento: manca FUTDB_TOKEN su Railway. Prezzi solo manuali (/prezzo)."
             from sqlalchemy import func, select
             from app.models import Card, PriceObservation
+            parts = []
+            if config.FCT_ENABLED:
+                n = db.query(PriceObservation).filter(PriceObservation.source == "fctracker").count()
+                last = db.scalar(select(func.max(PriceObservation.observed_at)).where(PriceObservation.source == "fctracker"))
+                parts.append("FC-Tracker attivo\n"
+                             f"Prezzi salvati: {fmt(n)}\n"
+                             f"Prezzo più recente: {last:%d/%m %H:%M} UTC" if last else
+                             "FC-Tracker attivo\nNessun prezzo recente (il bot scarta quelli più vecchi di "
+                             f"{config.FCT_MAX_AGE_HOURS}h)")
+            if not config.FUTDB_TOKEN:
+                parts.append("FUT-DB spento (manca FUTDB_TOKEN)")
+                return "\n\n".join(parts) if config.FCT_ENABLED else (
+                    "Fornitori automatici spenti. Prezzi solo manuali (/prezzo).")
             from app.providers.futdb import FutDB, SOURCE
-            n_cards = db.query(Card).filter(Card.external_id.isnot(None)).count()
+            n_cards = db.query(Card).filter(Card.external_id.isnot(None), ~Card.external_id.like("ea:%")).count()
             n_obs = db.query(PriceObservation).filter(PriceObservation.source == SOURCE).count()
             last = db.scalar(select(func.max(PriceObservation.observed_at)).where(PriceObservation.source == SOURCE))
             used = FutDB.used_today(FutDB.__new__(FutDB), db)
             last_txt = f"{last:%d/%m %H:%M} UTC" if last else "nessuno ancora"
-            return (
+            parts.append(
                 "FUT-DB attivo\n"
                 f"Carte seguite: {n_cards} (rating {config.FUTDB_RATING_MIN}-{config.FUTDB_RATING_MAX})\n"
                 f"Prezzi salvati: {fmt(n_obs)}\n"
                 f"Ultimo prezzo: {last_txt}\n"
                 f"Richieste oggi: {fmt(used)} / {fmt(config.FUTDB_DAILY_LIMIT)}"
             )
+            return "\n\n".join(parts)
         if cmd == "/carte":
             from sqlalchemy import select
             from app.models import Card, PriceObservation
@@ -165,7 +184,7 @@ def handle(chat_id: str, text: str) -> str | None:
                 last = db.scalar(select(PriceObservation).where(PriceObservation.card_id == card.id)
                                  .order_by(PriceObservation.observed_at.desc()))
                 n = db.query(PriceObservation).filter(PriceObservation.card_id == card.id).count()
-                lines.append(f"{card.name} {card.rating}: {fmt(last.price) if last else '-'} ({n} prezzi)")
+                lines.append(f"{card_label(card)}: {fmt(last.price) if last else '-'} ({n} prezzi)")
             return "\n".join(lines) or "Nessuna carta ancora. Usa /prezzo."
         return "Comando non riconosciuto. /aiuto per la lista."
 

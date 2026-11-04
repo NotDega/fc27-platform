@@ -75,7 +75,7 @@ class FutDB:
         """Aggiunge al database le carte della fascia di rating scelta. Ritorna quante sono seguite."""
         rarities = self._rarities(db)
         body = {"ratingMin": config.FUTDB_RATING_MIN, "ratingMax": config.FUTDB_RATING_MAX}
-        tracked = db.query(Card).filter(Card.external_id.isnot(None)).count()
+        tracked = db.query(Card).filter(Card.external_id.isnot(None), ~Card.external_id.like("ea:%")).count()
         page = 1
         while tracked < config.FUTDB_MAX_PLAYERS:
             data = self._request(db, "POST", "/api/players/search", params={"page": page}, json=body).json()
@@ -104,7 +104,7 @@ class FutDB:
         """Aggiorna i prezzi di tutte le carte seguite. Ritorna quanti prezzi nuovi ha salvato."""
         market = "pc" if config.PLATFORM == "pc" else "playstation"  # console = PlayStation + Xbox
         saved = 0
-        cards = db.scalars(select(Card).where(Card.external_id.isnot(None))).all()
+        cards = db.scalars(select(Card).where(Card.external_id.isnot(None), ~Card.external_id.like("ea:%"))).all()
         for card in cards:
             try:
                 data = self._request(db, "GET", f"/api/players/{card.external_id}/price").json()

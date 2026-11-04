@@ -49,6 +49,15 @@ def futdb_prices_job() -> None:
         log.exception("FUT-DB: errore nell'aggiornare i prezzi")
 
 
+def fctracker_job() -> None:
+    from app.providers.fctracker import FCTracker
+    try:
+        with SessionLocal() as db:
+            FCTracker().ingest(db)
+    except Exception:
+        log.exception("FC-Tracker: errore nello scaricare il pool")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
@@ -64,6 +73,11 @@ async def lifespan(app: FastAPI):
                  config.FUTDB_RATING_MIN, config.FUTDB_RATING_MAX, config.FUTDB_MAX_PLAYERS, config.FUTDB_INTERVAL_MIN)
     else:
         log.info("Fornitore FUT-DB spento (FUTDB_TOKEN mancante)")
+    if config.FCT_ENABLED:
+        scheduler.add_job(fctracker_job, "interval", minutes=config.FCT_INTERVAL_MIN,
+                          next_run_time=datetime.utcnow() + timedelta(seconds=30),
+                          max_instances=1, coalesce=True, id="fctracker")
+        log.info("Fornitore FC-Tracker attivo: ogni %d min, prezzi fino a %dh", config.FCT_INTERVAL_MIN, config.FCT_MAX_AGE_HOURS)
     scheduler.start()
     telegram_bot.start_polling()
     log.info("Avviato. Simulazione: %s", config.SIM_MODE)
