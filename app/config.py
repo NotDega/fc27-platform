@@ -9,8 +9,11 @@ def _get(name: str, default: str = "") -> str:
 # Database: su Railway viene impostato in automatico quando aggiungi Postgres.
 # In locale, senza variabile, usa un file SQLite.
 DATABASE_URL = _get("DATABASE_URL", "sqlite:///./fc27.db")
-if DATABASE_URL.startswith("postgres://"):  # formato vecchio, SQLAlchemy vuole postgresql://
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+# Railway dà "postgres://..." o "postgresql://...": diciamo a SQLAlchemy di usare il driver psycopg (v3).
+for _prefix in ("postgres://", "postgresql://"):
+    if DATABASE_URL.startswith(_prefix):
+        DATABASE_URL = "postgresql+psycopg://" + DATABASE_URL[len(_prefix):]
+        break
 
 # Telegram
 TELEGRAM_TOKEN = _get("TELEGRAM_TOKEN")
