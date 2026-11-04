@@ -32,7 +32,7 @@ SIM_MODE = _get("SIM_MODE", "true").lower() == "true"
 
 # Fornitore FUT-DB (premium). Se FUTDB_TOKEN è vuoto, il fornitore resta spento.
 FUTDB_TOKEN = _get("FUTDB_TOKEN")
-FUTDB_BASE_URL = _get("FUTDB_BASE_URL", "https://api.futdatabase.com")
+FUTDB_BASE_URL = _get("FUTDB_BASE_URL", "https://api.fut-db.com")
 FUTDB_RATING_MIN = int(_get("FUTDB_RATING_MIN", "84"))
 FUTDB_RATING_MAX = int(_get("FUTDB_RATING_MAX", "90"))
 FUTDB_MAX_PLAYERS = int(_get("FUTDB_MAX_PLAYERS", "300"))     # carte seguite

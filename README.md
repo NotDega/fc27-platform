@@ -57,7 +57,7 @@ Apri il tuo bot e scrivi **/start**. La prima chat che lo fa diventa la propriet
 
 ## Prezzi automatici: FUT-DB (premium)
 
-Con un abbonamento premium a [futdatabase.com](https://www.futdatabase.com) la piattaforma lavora da sola in background:
+Con un abbonamento premium a [fut-db.com](https://fut-db.com) la piattaforma lavora da sola in background:
 
 - una volta al giorno sceglie le carte da seguire (rating 84-90, massimo 300);
 - ogni ora scarica il prezzo PlayStation/console di ognuna e il floor EA;
