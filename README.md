@@ -83,6 +83,19 @@ Attivalo su Railway con la variabile `FCT_ENABLED` = `true`.
 - Le carte arrivano con il codice EA e senza nome: nel bot compaiono come "EA 1845".
 - Limite: molti prezzi del pool sono vecchi di giorni, quindi è una fonte di riferimento, non di segnali veloci.
 
+## Briefing, eventi, movimenti e dashboard (v0.3)
+
+- **Briefing automatico su Telegram** alle 7:00 e alle 19:00 (ora di Houston): prossimi eventi, call attive,
+  movimenti forti, quante carte hanno dati freschi, risultati della simulazione. Orari in `BRIEFING_HOURS`
+  (es. `7,19`; vuoto = spento), fuso in `TIMEZONE`.
+- **Calendario eventi** (`app/events.py`): premi Rivals e Champs, TOTW, contenuti del venerdì, Weekend League,
+  promo con data attesa. Le date delle promo si aggiornano in `DATED` quando EA le conferma.
+- **Movimenti**: rialzi e cali di almeno ±8% calcolati solo tra prezzi entrambi delle ultime 24 ore,
+  così un prezzo vecchio non diventa un falso "crollo".
+- **Dashboard web**: apri `https://<il-tuo-dominio>.up.railway.app/dashboard` dal telefono.
+
+Comandi nuovi: `/briefing`, `/eventi`, `/movimenti`.
+
 ## Uso quotidiano (Fase 1)
 
 Finché non abbiamo un fornitore di dati autorizzato, i prezzi li inserisci tu dal gioco:

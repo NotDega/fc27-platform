@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from app import config, services, telegram_bot
@@ -49,6 +50,15 @@ def futdb_prices_job() -> None:
         log.exception("FUT-DB: errore nell'aggiornare i prezzi")
 
 
+def briefing_job() -> None:
+    from app import briefing
+    try:
+        with SessionLocal() as db:
+            telegram_bot.send(briefing.build(db))
+    except Exception:
+        log.exception("Errore nel briefing")
+
+
 def fctracker_job() -> None:
     from app.providers.fctracker import FCTracker
     try:
@@ -73,6 +83,10 @@ async def lifespan(app: FastAPI):
                  config.FUTDB_RATING_MIN, config.FUTDB_RATING_MAX, config.FUTDB_MAX_PLAYERS, config.FUTDB_INTERVAL_MIN)
     else:
         log.info("Fornitore FUT-DB spento (FUTDB_TOKEN mancante)")
+    hours = ",".join(h.strip() for h in config.BRIEFING_HOURS.split(",") if h.strip().isdigit())
+    if hours:
+        scheduler.add_job(briefing_job, "cron", hour=hours, minute=0, timezone=config.TIMEZONE, id="briefing")
+        log.info("Briefing Telegram alle ore %s (%s)", hours, config.TIMEZONE)
     if config.FCT_ENABLED:
         scheduler.add_job(fctracker_job, "interval", minutes=config.FCT_INTERVAL_MIN,
                           next_run_time=datetime.utcnow() + timedelta(seconds=30),
@@ -90,7 +104,14 @@ app = FastAPI(title="FC 27 Market Platform", lifespan=lifespan)
 
 @app.get("/")
 def health():
-    return {"ok": True, "simulazione": config.SIM_MODE, "piattaforma": config.PLATFORM}
+    return {"ok": True, "simulazione": config.SIM_MODE, "piattaforma": config.PLATFORM, "dashboard": "/dashboard"}
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard_page():
+    from app import dashboard
+    with SessionLocal() as db:
+        return dashboard.render(db)
 
 
 class Observation(BaseModel):

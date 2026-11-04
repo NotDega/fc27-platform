@@ -21,6 +21,9 @@ API = "https://api.telegram.org/bot{token}/{method}"
 
 HELP = (
     "Comandi\n"
+    "/briefing - riepilogo: eventi, call, movimenti, dati\n"
+    "/eventi - calendario dei prossimi eventi FUT\n"
+    "/movimenti - rialzi e cali forti su prezzi recenti\n"
     "/prezzo Nome Rating Prezzo [Versione] - registra un prezzo visto nel gioco\n"
     "   es. /prezzo Declan Rice 88 13000\n"
     "/floor Nome Rating Prezzo - prezzo minimo EA della carta\n"
@@ -146,6 +149,21 @@ def handle(chat_id: str, text: str) -> str | None:
                 f"Win rate: {wr} - Drawdown massimo: {fmt(m['drawdown_max'])}\n"
                 f"Immobilizzo medio: {hold}"
             )
+        if cmd == "/briefing":
+            from app import briefing
+            return briefing.build(db)
+        if cmd == "/eventi":
+            from app import briefing
+            return briefing.events_text()
+        if cmd == "/movimenti":
+            from app import market
+            ups, downs = market.movers(db, limit=8)
+            if not ups and not downs:
+                return (f"Nessun movimento di almeno {config.MOVER_MIN_PCT:.0%} su prezzi delle ultime "
+                        f"{config.MOVER_WINDOW_HOURS}h.")
+            out = [f"{'▲' if m.pct > 0 else '▼'} {card_label(m.card)}: {fmt(m.first)} → {fmt(m.last)} "
+                   f"({m.pct:+.0%} in {m.hours:.0f}h, {m.n} prezzi)" for m in ups + downs]
+            return "MOVIMENTI (solo prezzi recenti)\n" + "\n".join(out)
         if cmd == "/fonte":
             from sqlalchemy import func, select
             from app.models import Card, PriceObservation

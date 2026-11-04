@@ -27,6 +27,11 @@ API_KEY = _get("API_KEY")
 PLATFORM = _get("PLATFORM", "console")
 BUDGET = int(_get("BUDGET", "500000"))
 
+# Fuso orario per orari, calendario e briefing
+TIMEZONE = _get("TIMEZONE", "America/Chicago")
+# Ore locali dei briefing automatici su Telegram (separate da virgola). Vuoto = nessun briefing.
+BRIEFING_HOURS = _get("BRIEFING_HOURS", "7,19")
+
 # Modalità simulazione: finché è "true" la piattaforma NON suggerisce di usare crediti veri.
 SIM_MODE = _get("SIM_MODE", "true").lower() == "true"
 
@@ -53,4 +58,10 @@ LOOKBACK_HOURS = int(_get("LOOKBACK_HOURS", "48"))         # finestra della medi
 MIN_NET_PCT = float(_get("MIN_NET_PCT", "0.05"))           # rendimento netto minimo di una call (5%)
 MAX_EXPOSURE_PCT = float(_get("MAX_EXPOSURE_PCT", "0.10")) # esposizione massima per call (10% del budget)
 CALL_HORIZON_HOURS = int(_get("CALL_HORIZON_HOURS", "24")) # dopo quanto una call scade
-SIM_DELAY_MIN = (10, 30)      # ritardo simulato tra notifica e acquisto manuale, in minuti
+SIM_DELAY_MIN = (10, 30)
+
+# Movimenti di mercato (rialzi/cali) calcolati solo su prezzi recenti
+MOVER_WINDOW_HOURS = int(_get("MOVER_WINDOW_HOURS", "24"))
+MOVER_MIN_GAP_HOURS = float(_get("MOVER_MIN_GAP_HOURS", "2"))
+MOVER_MIN_PCT = float(_get("MOVER_MIN_PCT", "0.08"))       # almeno ±8%
+MOVER_MIN_PRICE = int(_get("MOVER_MIN_PRICE", "2000"))      # ritardo simulato tra notifica e acquisto manuale, in minuti
