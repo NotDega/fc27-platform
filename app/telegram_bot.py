@@ -27,6 +27,7 @@ HELP = (
     "/call - call attive\n"
     "/stats - risultati della simulazione\n"
     "/carte - carte seguite e ultimo prezzo\n"
+    "/fonte - stato del fornitore di prezzi automatico\n"
     "/aiuto - questo messaggio"
 )
 
@@ -137,6 +138,24 @@ def handle(chat_id: str, text: str) -> str | None:
                 f"Profitto netto: {fmt(m['profitto_netto'])}\n"
                 f"Win rate: {wr} - Drawdown massimo: {fmt(m['drawdown_max'])}\n"
                 f"Immobilizzo medio: {hold}"
+            )
+        if cmd == "/fonte":
+            if not config.FUTDB_TOKEN:
+                return "Fornitore automatico spento: manca FUTDB_TOKEN su Railway. Prezzi solo manuali (/prezzo)."
+            from sqlalchemy import func, select
+            from app.models import Card, PriceObservation
+            from app.providers.futdb import FutDB, SOURCE
+            n_cards = db.query(Card).filter(Card.external_id.isnot(None)).count()
+            n_obs = db.query(PriceObservation).filter(PriceObservation.source == SOURCE).count()
+            last = db.scalar(select(func.max(PriceObservation.observed_at)).where(PriceObservation.source == SOURCE))
+            used = FutDB.used_today(FutDB.__new__(FutDB), db)
+            last_txt = f"{last:%d/%m %H:%M} UTC" if last else "nessuno ancora"
+            return (
+                "FUT-DB attivo\n"
+                f"Carte seguite: {n_cards} (rating {config.FUTDB_RATING_MIN}-{config.FUTDB_RATING_MAX})\n"
+                f"Prezzi salvati: {fmt(n_obs)}\n"
+                f"Ultimo prezzo: {last_txt}\n"
+                f"Richieste oggi: {fmt(used)} / {fmt(config.FUTDB_DAILY_LIMIT)}"
             )
         if cmd == "/carte":
             from sqlalchemy import select

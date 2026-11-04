@@ -55,6 +55,25 @@ Apri il tuo bot e scrivi **/start**. La prima chat che lo fa diventa la propriet
 - Nella scheda **Deployments** → **View logs** deve comparire `Avviato. Simulazione: True`.
 - Su Telegram `/aiuto` mostra i comandi.
 
+## Prezzi automatici: FUT-DB (premium)
+
+Con un abbonamento premium a [futdatabase.com](https://www.futdatabase.com) la piattaforma lavora da sola in background:
+
+- una volta al giorno sceglie le carte da seguire (rating 84-90, massimo 300);
+- ogni ora scarica il prezzo PlayStation/console di ognuna e il floor EA;
+- il motore controlla i prezzi ogni minuto e ti scrive su Telegram quando trova un'occasione.
+
+Per attivarlo aggiungi su Railway la variabile `FUTDB_TOKEN` con la chiave API di FUT-DB. Facoltative:
+
+| Variabile | Predefinito | Significato |
+|---|---|---|
+| `FUTDB_RATING_MIN` / `FUTDB_RATING_MAX` | 84 / 90 | Fascia di rating seguita |
+| `FUTDB_MAX_PLAYERS` | 300 | Numero massimo di carte |
+| `FUTDB_INTERVAL_MIN` | 60 | Minuti tra un aggiornamento e l'altro |
+| `FUTDB_DAILY_LIMIT` | 18000 | Richieste massime al giorno (il piano ne dà 20.000) |
+
+Consumo: 300 carte × 24 aggiornamenti = 7.200 richieste al giorno. Su Telegram `/fonte` mostra lo stato.
+
 ## Uso quotidiano (Fase 1)
 
 Finché non abbiamo un fornitore di dati autorizzato, i prezzi li inserisci tu dal gioco:

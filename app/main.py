@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Header, HTTPException
@@ -31,11 +31,39 @@ def engine_job() -> None:
             log.info("call create: %d, chiuse: %d", len(created), len(closed))
 
 
+def futdb_universe_job() -> None:
+    from app.providers.futdb import FutDB
+    try:
+        with SessionLocal() as db:
+            FutDB().refresh_universe(db)
+    except Exception:
+        log.exception("FUT-DB: errore nell'aggiornare l'elenco carte")
+
+
+def futdb_prices_job() -> None:
+    from app.providers.futdb import FutDB
+    try:
+        with SessionLocal() as db:
+            FutDB().fetch_prices(db)
+    except Exception:
+        log.exception("FUT-DB: errore nell'aggiornare i prezzi")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     scheduler = BackgroundScheduler(timezone="UTC")
     scheduler.add_job(engine_job, "interval", seconds=60, max_instances=1, coalesce=True)
+    if config.FUTDB_TOKEN:
+        now = datetime.utcnow()
+        scheduler.add_job(futdb_universe_job, "interval", hours=24, next_run_time=now,
+                          max_instances=1, coalesce=True, id="futdb_universe")
+        scheduler.add_job(futdb_prices_job, "interval", minutes=config.FUTDB_INTERVAL_MIN,
+                          next_run_time=now + timedelta(minutes=2), max_instances=1, coalesce=True, id="futdb_prices")
+        log.info("Fornitore FUT-DB attivo: rating %d-%d, max %d carte, ogni %d min",
+                 config.FUTDB_RATING_MIN, config.FUTDB_RATING_MAX, config.FUTDB_MAX_PLAYERS, config.FUTDB_INTERVAL_MIN)
+    else:
+        log.info("Fornitore FUT-DB spento (FUTDB_TOKEN mancante)")
     scheduler.start()
     telegram_bot.start_polling()
     log.info("Avviato. Simulazione: %s", config.SIM_MODE)

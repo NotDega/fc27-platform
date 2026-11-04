@@ -30,6 +30,15 @@ BUDGET = int(_get("BUDGET", "500000"))
 # Modalità simulazione: finché è "true" la piattaforma NON suggerisce di usare crediti veri.
 SIM_MODE = _get("SIM_MODE", "true").lower() == "true"
 
+# Fornitore FUT-DB (premium). Se FUTDB_TOKEN è vuoto, il fornitore resta spento.
+FUTDB_TOKEN = _get("FUTDB_TOKEN")
+FUTDB_BASE_URL = _get("FUTDB_BASE_URL", "https://api.futdatabase.com")
+FUTDB_RATING_MIN = int(_get("FUTDB_RATING_MIN", "84"))
+FUTDB_RATING_MAX = int(_get("FUTDB_RATING_MAX", "90"))
+FUTDB_MAX_PLAYERS = int(_get("FUTDB_MAX_PLAYERS", "300"))     # carte seguite
+FUTDB_INTERVAL_MIN = int(_get("FUTDB_INTERVAL_MIN", "60"))    # ogni quanto aggiornare i prezzi
+FUTDB_DAILY_LIMIT = int(_get("FUTDB_DAILY_LIMIT", "18000"))   # margine sotto le 20.000 del piano
+
 # Regole del motore (valori di partenza, si regolano dopo la simulazione)
 EA_TAX = 0.05                 # trattenuta EA su ogni vendita
 MIN_OBSERVATIONS = int(_get("MIN_OBSERVATIONS", "5"))      # osservazioni minime per calcolare la media

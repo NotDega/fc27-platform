@@ -26,6 +26,7 @@ class Card(Base):
     rating: Mapped[int] = mapped_column(Integer)
     platform: Mapped[str] = mapped_column(String(10), default="console")
     floor_price: Mapped[int | None] = mapped_column(Integer, nullable=True)  # prezzo minimo EA, se noto
+    external_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)  # id del fornitore (es. FUT-DB)
 
 
 class PriceObservation(Base):
